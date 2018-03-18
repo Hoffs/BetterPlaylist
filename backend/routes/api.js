@@ -7,9 +7,9 @@ const playlistRouter = require('./playlist');
 const authMiddleware = require('../authMiddleware');
 
 apiRouter
-    .use('/auth', authRouter)
-    .use('/user', authMiddleware, userRouter)
-    .use('/track', authMiddleware, trackRouter)
-    .use('/playlist', authMiddleware, playlistRouter)
+.use('/auth', authRouter)
+.use('/user', authMiddleware, userRouter)
+.use('/track', authMiddleware, trackRouter)
+.use('/playlist', authMiddleware, playlistRouter)
 
 module.exports = apiRouter;

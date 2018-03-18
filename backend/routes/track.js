@@ -8,11 +8,11 @@ const getTrack = (track_id) => {
   return { id: "1234asdf" }
 }
 
-router.post('/:spotify_id', authMiddleware, function(req, res, next) {
+router.post('/:spotify_id', authMiddleware, (req, res, next) => {
   const id = req.params.spotify_id;
   const result = Joi.string().alphanum().validate(id); // Same as Base62
   if (result.error) {
-      return res.status(400).send({code: 400, message: "Invalid track id."});
+    return res.status(400).send({code: 400, message: "Invalid track id."});
   }
 
   const track = getTrack(id);
