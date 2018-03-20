@@ -1,11 +1,13 @@
 const mongoose = require('mongoose');
-const spotifyUtils = require('./spotifyUtils');
+const spotifyUtils = require('../spotifyUtils');
 const uuidv4 = require('uuid/v4');
 const crypto = require('crypto');
 
+const Playlist = require('./playlist');
+
 const { Schema } = mongoose;
 const userSchema = new Schema({
-  id: String,
+  // id: String, use ObjectId
   spotifyId: { type: String, index: true },
   displayName: String,
   email: String,
@@ -37,10 +39,10 @@ userSchema.methods.isTokenExpired = async function isSpotifyTokenExpired() {
   }
   const currentDate = new Date();
 
-  return (currentDate.getTime() - created > expiresIn * 1000);
+  return (currentDate.getTime() - created > (expiresIn - 60) * 1000); // 1 minute shorter for safety
 };
 
-userSchema.methods.refreshSpotifyToken = async function refreshSpotifyToken() {
+userSchema.methods.refreshAccessToken = async function refreshSpotifyToken() {
   let refreshToken;
   if (this.get('refreshToken')) {
     refreshToken = this.get('refreshToken');
@@ -60,17 +62,19 @@ userSchema.methods.refreshSpotifyToken = async function refreshSpotifyToken() {
   await this.update({
     accessToken: newTokens.token,
     tokenCreated: updateDate,
-    tokenExpires: newTokens.expires_in,
+    tokenExpires: newTokens.expiresIn,
     modifyDate: updateDate,
   }).exec();
   this.set('accessToken', newTokens.token);
-  this.unmarkModified('accessToken');
+  this.set('tokenCreated', updateDate);
+  this.set('tokenExpires', newTokens.expiresIn);
+  this.unmarkModified('accessToken tokenCreated tokenExpires');
   return newTokens.token;
 };
 
 userSchema.statics.findByToken = async function findUserByAuthToken(token) {
   const query = this.findOne({ authToken: token });
-  const result = await query.select('id spotifyId accessToken refreshToken tokenExpires tokenCreated').exec();
+  const result = await query.select('spotifyId accessToken refreshToken tokenExpires tokenCreated').exec();
 
   return result;
 };
@@ -82,12 +86,12 @@ userSchema.statics.createOrUpdateWithCode = async function createOrUpdateUserWit
   if (!userData) return null;
 
   const query = this.findOne({ spotifyId: userData.spotifyId });
-  const result = await query.select('id spotifyId').exec();
+  const result = await query.select('spotifyId').exec();
 
   if (result) {
     const updateDate = new Date();
     const newToken = crypto.createHmac('sha256', process.env.APP_SECRET)
-      .update(result.get('id', String))
+      .update(result.get('_id', String))
       .update(updateDate.toISOString())
       .digest('hex');
     const updateQuery = result.update({
@@ -105,15 +109,14 @@ userSchema.statics.createOrUpdateWithCode = async function createOrUpdateUserWit
     return newToken;
   }
 
-  const id = uuidv4();
   const createdDate = new Date();
   const token = crypto.createHmac('sha256', process.env.APP_SECRET)
-    .update(id.toString())
+    .update(uuidv4().toString())
     .update(createdDate.toISOString())
     .digest('hex');
 
   await this.create({
-    id: uuidv4(),
+    // id: uuidv4(),
     spotifyId: userData.spotifyId,
     displayName: userData.displayName,
     email: userData.email,
@@ -131,30 +134,42 @@ userSchema.statics.createOrUpdateWithCode = async function createOrUpdateUserWit
   return token;
 };
 
-const trackSchema = new Schema({
-  id: { type: String, index: true },
-  name: String,
-  durationMs: Number,
-  artist: String,
-  album: String,
-  createDate: Date,
-  modifyDate: Date,
-});
+userSchema.methods.addPlaylist = async function addPlaylistToUser(playlist) {
+  const user = await User.findById(this.get('_id')).select('playlists').exec(); // eslint-disable-line no-use-before-define
+  if (user.playlists && user.playlists.length >= 50) { // Maximum of 50 playlists per user.
+    return false;
+  }
+  const ids = user.playlists.map(x => x.toHexString());
+  if (ids.includes(playlist.get('_id').toHexString())) {
+    return false;
+  }
+  user.playlists.push(playlist.get('_id'));
+  await user.save();
+  return true;
+};
 
-const playlistSchema = new Schema({
-  id: { type: String, index: true },
-  name: String,
-  description: String,
-  exportedName: String,
-  exportedId: String,
-  tracks: [{ type: Schema.Types.ObjectId, ref: 'Track' }],
-  subPlaylists: [{ type: Schema.Types.ObjectId, ref: 'Playlist' }],
-  createDate: Date,
-  modifyDate: Date,
-});
+userSchema.methods.deletePlaylist = async function deleteUserPlaylist(playlistId) {
+  const user = await User.findById(this.get('_id')).select('playlist').where({ playlists: playlistId }); // eslint-disable-line no-use-before-define
+  if (!user) {
+    return false;
+  }
+  await Playlist.findByIdAndRemove(playlistId).exec();
+  await this.update({ $pull: { playlists: playlistId } }).exec();
+  return true;
+};
+
+userSchema.methods.getPlaylists = async function getUserPlaylists() {
+  const user = await User.findById(this.get('_id')).select('playlists').exec(); // eslint-disable-line no-use-before-define
+  await user.populate({ path: 'playlists', model: 'Playlist', select: 'name description exportedName exportedId subPlaylists' }).execPopulate();
+  return user.playlists.map(x => ({
+    id: x.get('_id'),
+    name: x.name,
+    description: x.description,
+    exportedName: x.exportedName,
+    exportedId: x.exportedId,
+  }));
+};
 
 const User = mongoose.model('User', userSchema);
-const Track = mongoose.model('Track', trackSchema);
-const Playlist = mongoose.model('Playlist', playlistSchema);
 
-module.exports = { User, Track, Playlist };
+module.exports = User;

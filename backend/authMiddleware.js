@@ -1,5 +1,5 @@
 const Joi = require('joi');
-const db = require('./dbSchemas');
+const { User } = require('./schemas/user');
 
 module.exports = async (req, res, next) => {
   const full = req.header('Authorization');
@@ -11,9 +11,12 @@ module.exports = async (req, res, next) => {
   if (validate.error) {
     return res.status(401).send({ code: 401, message: 'Invalid authorization token.' });
   }
-  const result = db.User.findByToken(token);
+  const result = User.findByToken(token);
   if (!result) {
     return res.status(401).send({ code: 401, message: 'Unauthorized.' });
+  }
+  if (await result.isTokenExpired()) {
+    await result.refreshAccessToken();
   }
   req.authUser = result;
   return next();

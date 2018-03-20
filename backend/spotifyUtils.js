@@ -27,7 +27,7 @@ const refreshSpotifyToken = async (refreshToken) => {
   }
 
   const data = await response.json();
-  return { token: data.access_token, expires_in: data.expires_in };
+  return { token: data.access_token, expiresIn: data.expires_in };
 };
 
 const requestSpotifyTokens = async (code) => {
@@ -80,8 +80,40 @@ const getUserSpotifyData = async (token) => {
   };
 };
 
+const getTrackData = async (token, ...tracks) => {
+  const endpoint = 'https://api.spotify.com/v1/tracks?ids=';
+  const requestUrl = `${endpoint}${tracks.join(',')}`;
+
+  const response = await fetch(requestUrl, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  const data = await response.json();
+  const parsedTracks = [];
+  const date = new Date();
+  data.tracks.forEach((element) => {
+    parsedTracks.push({
+      id: element.id,
+      name: element.name,
+      durationMs: element.duration_ms,
+      artist: element.artists.map(x => x.name).join(', '),
+      album: element.album.name,
+      modifyDate: date,
+      createDate: date,
+    });
+  });
+  return parsedTracks;
+};
+
 module.exports = {
   refreshToken: refreshSpotifyToken,
   requestTokens: requestSpotifyTokens,
   getUserData: getUserSpotifyData,
+  getTrackData,
 };
