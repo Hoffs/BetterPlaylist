@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const User = require('../schemas/user');
+const { User } = require('../schemas');
 
 router.get('/', (req, res) => {
   User.findById(req.authUser.get('_id'), 'spotifyId displayName imageUrl')

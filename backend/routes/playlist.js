@@ -1,94 +1,89 @@
 const router = require('express').Router();
 const Joi = require('joi');
-const uuidv4 = require('uuid/v4');
 const tracksRouter = require('./playlistTracks');
+const { User, Playlist } = require('../schemas');
 
 const playlistCreateSchema = Joi.object({
   name: Joi.string().min(5).max(100).required(),
   description: Joi.string().min(5).max(300).required(),
 });
 
-const createPlaylist = (token, name, description) => {
-  // TODO: Create playlist in database.
-  return {
-    id: uuidv4(),
-    name,
-    description,
-    exportedName: null,
-    exportedId: null,
-    tracks: [],
-    subPlaylists: [],
-    createDate: new Date(),
-    modifyDate: new Date(),
-  };
-};
-
-// POST /playlist/
 router.post('/', (req, res) => {
   const result = Joi.validate(req.body, playlistCreateSchema);
   if (result.error) {
     return res.status(400).send({ code: 400, message: 'Invalid playlist name or description.' });
   }
 
-  const playlist = createPlaylist(req.myToken, req.body.name, req.body.description);
-  if (!playlist) {
-    return res.status(409).send({ code: 409, message: "Couldn't create the playlist." });
-  }
-  res.status(200).send(playlist);
+  return Playlist.createWith(req.body.name, req.body.description)
+    .then(playlist => req.authUser.addPlaylist(playlist))
+    .then((added) => {
+      if (!added) {
+        return res.status(404).json({ code: 404, message: 'Couldn\'t add playlist.' });
+      }
+      return res.status(201).json({
+        id: added.get('_id'),
+        name: added.get('name'),
+        description: added.get('description'),
+        exportedName: added.get('exportedName'),
+        exportedId: added.get('exportedId'),
+      });
+    })
+    .catch(() => res.status(409).send({ code: 409, message: "Couldn't create the playlist." }));
 });
-
-const getUserPlaylists = (token, limit, page) => {
-  // TODO: Get actual user and retrieve its playlists.
-  return { totalCount: 0, results: [{ id: '1234' }] };
-};
 
 router.get('/', (req, res) => {
-  const limit = req.header('limit') || 20;
-  const page = req.header('page') || 1;
-  const { totalCount, results } = getUserPlaylists(req.myToken, limit, page);
-  res.setHeader('total-count', totalCount);
-  res.setHeader('limit', limit);
-  res.setHeader('page', page);
-  res.status(200).send(results);
+  const validatedLimit = Joi.number().greater(0).less(50).required()
+    .validate(req.header('limit'));
+  const limit = (validatedLimit.error) ? 20 : req.header('limit');
+  const validatedPage = Joi.number().greater(0).required().validate(req.header('page'));
+  const page = (validatedPage.error) ? 1 : req.header('page');
+  req.authUser.getPlaylists(limit, page)
+    .then((playlists) => {
+      res.setHeader('total-count', playlists.total);
+      res.setHeader('limit', limit);
+      res.setHeader('page', page);
+      return res.status(200).json(playlists.data);
+    })
+    .catch(() => res.status(400).json({ code: 400, message: "Couldn't retrieve playlists." }));
 });
 
-const getUserPlaylist = (token, id) => {
-  // TODO: Check if user owns playlist and retrieve it.
-  return null;
-};
-
-const verifyPlaylistMiddleware = (req, res, next) => {
-  const result = Joi.string().guid('uuidv4').validate(req.params.id);
+const verifyPlaylistMiddleware = async (req, res, next) => {
+  const result = Joi.string().alphanum().length(24).validate(req.params.id);
   if (result.error) {
     return res.status(400).send({ code: 400, message: 'Invalid playlist id.' });
   }
-  // Maybe add actual database checking for existing playlist. Would remove some errors further on.
-  next();
-};
-
-router.post('/:id', verifyPlaylistMiddleware, (req, res) => {
-  const playlist = getUserPlaylist(req.myToken, req.params.id);
+  const playlist = await Playlist.findById(req.params.id).select('name description exportedName exportedId tracks').exec();
   if (!playlist) {
     return res.status(404).send({ code: 404, message: 'Playlist not found.' });
   }
-  res.send(playlist);
-});
-
-const exportPlaylist = (token, id, exportName) => {
-  // TODO: Actually retrieve and export playlist to users spotify account.
-  return { spotify_uri: 'asd' };
+  const ownsPlaylist = await User.findById(req.authUser.get('_id')).select('playlists').where('playlists', playlist.get('_id')).exec();
+  if (!ownsPlaylist) {
+    return res.status(403).send({ code: 403, message: 'Playlist doesn\'t belong to you.' });
+  }
+  req.playlist = playlist;
+  return next();
 };
+
+/*
+ Playlist updating, deleting, etc.
+*/
+
+router.get('/:id', verifyPlaylistMiddleware, (req, res) => {
+  res.status(200).json({
+    id: req.playlist.id,
+    name: req.playlist.name,
+    description: req.playlist.description,
+    exportedName: req.playlist.exportedName,
+    exportedId: req.playlist.exportedId,
+    trackCount: req.playlist.tracks.length,
+  });
+});
 
 const playlistUpdateSchema = Joi.object().keys({
   name: Joi.string().min(5).max(100),
-  description: Joi.string().min(5).max(100),
-  subPlaylists: Joi.array().items(Joi.string().uuid('uuidv4')),
+  description: Joi.string().min(5).max(300),
+  subPlaylists: Joi.array().items(Joi.string().alphanum().length(24)),
 });
-
-const updatePlaylist = (token, id, updated) => {
-  // TODO: Actually update playlist fields.
-  return { id: '1234' };
-};
 
 router.put('/:id', verifyPlaylistMiddleware, (req, res) => {
   const result = Joi.validate(req.body, playlistUpdateSchema);
@@ -96,12 +91,32 @@ router.put('/:id', verifyPlaylistMiddleware, (req, res) => {
     return res.status(400).send({ code: 400, message: 'Invalid field values.' });
   }
 
-  const playlist = updatePlaylist(req.myToken, req.params.id, req.body);
-  if (!playlist) {
-    return res.status(409).send({ code: 409, message: "Couldn't update playlist. Maybe try changing the fields..." });
+  if (req.body.name) {
+    req.playlist.set('name', req.body.name);
   }
-
-  return res.status(200).send(playlist);
+  if (req.body.description) {
+    req.playlist.set('description', req.body.description);
+  }
+  if (!req.playlist.isModified('name') && !req.playlist.isModified('description')) {
+    return res.status(200).json({
+      id: req.playlist.id,
+      name: req.playlist.name,
+      description: req.playlist.description,
+      exportedName: req.playlist.exportedName,
+      exportedId: req.playlist.exportedId,
+      trackCount: req.playlist.tracks.length,
+    });
+  }
+  return req.playlist.save()
+    .then(updated => res.status(200).json({
+      id: updated.id,
+      name: updated.name,
+      description: updated.description,
+      exportedName: updated.exportedName,
+      exportedId: updated.exportedId,
+      trackCount: updated.tracks.length,
+    }))
+    .catch(() => res.status(409).send({ code: 409, message: 'Couldn\'t successfully update playlist.' }));
 });
 
 router.post('/:id/export', verifyPlaylistMiddleware, (req, res) => {
@@ -111,12 +126,9 @@ router.post('/:id/export', verifyPlaylistMiddleware, (req, res) => {
     return res.status(400).send({ code: 400, message: 'Invalid playlist name.' });
   }
 
-  const exported = exportPlaylist(req.myToken, req.params.id, exportName);
-  if (!exported) {
-    return res.status(409).send({ code: 409, message: "Couldn't export playlist. Maybe try changing the name..." });
-  }
-
-  return res.status(200).send(exported);
+  return req.playlist.exportToSpotify(req.authUser.get('spotifyId'), req.authUser.get('accessToken'), exportName)
+    .then(uri => res.status(200).json(uri))
+    .catch(() => res.status(409).send({ code: 409, message: "Couldn't successfully export playlist." }));
 });
 
 router.use('/:id/tracks', verifyPlaylistMiddleware, tracksRouter);

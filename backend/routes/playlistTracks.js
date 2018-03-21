@@ -1,44 +1,33 @@
 const router = require('express').Router();
 const Joi = require('joi');
 
-const getPlaylistTracks = (token, id, limit, page) => {
-  // TODO: Get actual user and retrieve its playlists.
-  return { totalCount: 0, results: [] };
-};
-
 router.get('/', (req, res) => {
-  const limit = req.header('limit') || 20;
-  const page = req.header('page') || 1;
-  const { totalCount, results } = getPlaylistTracks(req.myToken, req.authUser.get('_id'), limit, page);
-  res.setHeader('total-count', totalCount);
-  res.setHeader('limit', limit);
-  res.setHeader('page', page);
-  return res.status(200).send(results);
+  const validatedLimit = Joi.number().greater(0).less(50).required()
+    .validate(req.header('limit'));
+  const limit = (validatedLimit.error) ? 20 : req.header('limit');
+  const validatedPage = Joi.number().greater(0).required().validate(req.header('page'));
+  const page = (validatedPage.error) ? 1 : req.header('page');
+
+  req.playlist.getTracks(limit, page)
+    .then((tracksData) => {
+      res.setHeader('total-count', tracksData.total);
+      res.setHeader('limit', limit);
+      res.setHeader('page', page);
+      return res.status(200).json(tracksData.data);
+    })
+    .catch(() => res.status(409).json({ code: 409, message: 'Coudln\'t retrieve tracks.' }));
 });
 
-const addPlaylistTracks = (token, id, tracks) => {
-  // TODO: Add new tracks to database and add them to playlist.
-  return [{ id: '1234' }];
-};
-
 router.post('/', (req, res) => {
-  const result = Joi.array().items(Joi.string().alphanum()).validate(req.body);
-  if (result.error) {
+  const result = Joi.array().items(Joi.string().alphanum()).required().validate(req.body);
+  if (result.error || req.body.length === 0) {
     return res.status(400).send({ code: 400, message: "Invalid track id's." });
   }
 
-  const added = addPlaylistTracks(req.myToken, req.params.id, req.body);
-  if (!added) {
-    return res.status(409).send({ code: 409, message: "Couldn't add tracks to playlist." });
-  }
-
-  return res.status(200).send(added);
+  return req.playlist.addTracks(req.authUser.get('accessToken'), ...req.body)
+    .then(added => res.status(200).json({ added }))
+    .catch(() => res.status(409).json({ code: 409, message: "Couldn't successfully add tracks." }));
 });
-
-const deletePlaylistTrack = (token, id, track_id) => {
-  // TODO: Remove track from playlist.
-  return true;
-};
 
 router.delete('/:track_id', (req, res) => {
   const track = req.params.track_id;
@@ -47,12 +36,9 @@ router.delete('/:track_id', (req, res) => {
     return res.status(400).send({ code: 400, message: 'Invalid track id.' });
   }
 
-  const deleted = deletePlaylistTrack(req.myToken, req.params.id, track);
-  if (!deleted) { // Probably only happens if track doesn't exist in playlist.
-    return res.status(404).send({ code: 404, message: 'Track not found.' });
-  }
-
-  return res.status(200).send({ code: 200 });
+  return req.playlist.removeTracks(track)
+    .then(() => res.status(200).json({ code: 200 }))
+    .catch(() => res.status(400).json({ code: 400, message: 'Couldn\'t remove track.' }));
 });
 
 module.exports = router;

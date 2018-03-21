@@ -137,15 +137,15 @@ userSchema.statics.createOrUpdateWithCode = async function createOrUpdateUserWit
 userSchema.methods.addPlaylist = async function addPlaylistToUser(playlist) {
   const user = await User.findById(this.get('_id')).select('playlists').exec(); // eslint-disable-line no-use-before-define
   if (user.playlists && user.playlists.length >= 50) { // Maximum of 50 playlists per user.
-    return false;
+    return null;
   }
   const ids = user.playlists.map(x => x.toHexString());
   if (ids.includes(playlist.get('_id').toHexString())) {
-    return false;
+    return null;
   }
   user.playlists.push(playlist.get('_id'));
   await user.save();
-  return true;
+  return playlist;
 };
 
 userSchema.methods.deletePlaylist = async function deleteUserPlaylist(playlistId) {
@@ -158,16 +158,30 @@ userSchema.methods.deletePlaylist = async function deleteUserPlaylist(playlistId
   return true;
 };
 
-userSchema.methods.getPlaylists = async function getUserPlaylists() {
+userSchema.methods.getPlaylists = async function getUserPlaylists(limit = 20, page = 1) {
+  if (limit < 0 || page < 0) {
+    return null;
+  }
+  const skipAmount = (page - 1) * limit;
   const user = await User.findById(this.get('_id')).select('playlists').exec(); // eslint-disable-line no-use-before-define
-  await user.populate({ path: 'playlists', model: 'Playlist', select: 'name description exportedName exportedId subPlaylists' }).execPopulate();
-  return user.playlists.map(x => ({
+  const total = user.playlists.length;
+  await user.populate({
+    path: 'playlists',
+    model: 'Playlist',
+    select: 'name description exportedName exportedId subPlaylists',
+    options: {
+      skip: skipAmount,
+      limit,
+    },
+  }).execPopulate();
+  const data = user.playlists.map(x => ({
     id: x.get('_id'),
     name: x.name,
     description: x.description,
     exportedName: x.exportedName,
     exportedId: x.exportedId,
   }));
+  return { total, data };
 };
 
 const User = mongoose.model('User', userSchema);
