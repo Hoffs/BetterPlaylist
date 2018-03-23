@@ -116,19 +116,25 @@ router.put('/:id', verifyPlaylistMiddleware, (req, res) => {
       exportedId: updated.exportedId,
       trackCount: updated.tracks.length,
     }))
-    .catch(() => res.status(409).send({ code: 409, message: 'Couldn\'t successfully update playlist.' }));
+    .catch(() => res.status(409).json({ code: 409, message: 'Couldn\'t successfully update playlist.' }));
+});
+
+router.delete('/:id', verifyPlaylistMiddleware, (req, res) => {
+  req.authUser.deletePlaylist(req.playlist.get('_id'))
+    .then(() => res.status(200).json({ code: 200 }))
+    .catch(() => res.status(400).json({ code: 400, message: "Coudln't delete playlist." }));
 });
 
 router.post('/:id/export', verifyPlaylistMiddleware, (req, res) => {
   const exportName = req.body.name;
   const result = Joi.string().min(5).max(100).validate(exportName);
   if (result.error) {
-    return res.status(400).send({ code: 400, message: 'Invalid playlist name.' });
+    return res.status(400).json({ code: 400, message: 'Invalid playlist name.' });
   }
 
   return req.playlist.exportToSpotify(req.authUser.get('spotifyId'), req.authUser.get('accessToken'), exportName)
     .then(uri => res.status(200).json(uri))
-    .catch(() => res.status(409).send({ code: 409, message: "Couldn't successfully export playlist." }));
+    .catch(() => res.status(409).json({ code: 409, message: "Couldn't successfully export playlist." }));
 });
 
 router.use('/:id/tracks', verifyPlaylistMiddleware, tracksRouter);
