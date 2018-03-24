@@ -1,0 +1,21 @@
+.list-container {
+  grid-area: playlists;
+  padding: 10px;
+  display: grid;
+  grid-template-rows: [title] 60px [content] 1fr;
+  // background-color: rgb(18, 18, 18);
+}
+
+.list-container__title {
+  display: inline-block;
+  grid-row: title;
+  align-self: center;
+  padding-left: 15px;
+  font-size: 2em;
+}
+
+.list-container__list {
+  grid-row: content;
+  list-style: none;
+  padding-left: 0;
+}

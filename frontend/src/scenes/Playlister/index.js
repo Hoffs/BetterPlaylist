@@ -1,1 +1,1 @@
-export { default } from './Playlister.js';
+export { default } from './Playlister.jsx';

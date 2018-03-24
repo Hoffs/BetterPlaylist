@@ -1,0 +1,47 @@
+.track-container {
+  padding: 20px;
+  grid-row: tracks;
+  display: grid;
+  grid-template-rows: 20px 40px 1fr;
+  grid-template-areas:
+    ".        .         .         add"
+    "name     artist    album     duration"
+    "content  content   content   content";
+  grid-auto-columns: 2fr 1fr 1fr 0.5fr;
+}
+
+.track-container__legend-name {
+  padding-left: 5px;
+  grid-area: name;
+  align-self: center;
+}
+
+.track-container__legend-artist {
+  grid-area: artist;
+  align-self: center;
+}
+
+.track-container__legend-album {
+  grid-area: album;
+  align-self: center;
+}
+
+.track-container__legend-duration {
+  padding-right: 5px;
+  grid-area: duration;
+  align-self: center;
+  text-align: right;
+}
+
+.track-container__add {
+  padding-right: 5px;
+  align-self: center;
+  grid-area: add;
+  text-align: right;
+}
+
+.track-container__tracks {
+  padding-top: 10px;
+  grid-area: content;
+  border-top: 1px solid hsla(0, 0%, 20%, 1);
+}
