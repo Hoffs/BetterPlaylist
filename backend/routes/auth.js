@@ -1,9 +1,9 @@
 const router = require('express').Router();
 const Joi = require('joi');
-const { User } = require('../schemas/user');
+const { User } = require('../schemas');
 
 const schema = Joi.object().keys({
-  code: Joi.string(),
+  code: Joi.string().required(),
 });
 
 router.post('/', async (req, res) => {

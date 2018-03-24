@@ -11,12 +11,11 @@ mongoose.connect(process.env.DB_URI);
 
 app.set('view engine', 'html');
 
-// const dbSchemas = require('./dbSchemas');
-
 // Enable CORS
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  res.header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS, DELETE, PUT');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   next();
 });
 
@@ -24,6 +23,11 @@ app.use((req, res, next) => {
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+app.options('*', (req, res) => {
+  res.header('Content-Length', '0');
+  res.end();
+});
 
 app.use('/api', apiRouter);
 
