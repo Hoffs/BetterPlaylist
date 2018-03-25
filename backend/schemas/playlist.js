@@ -73,13 +73,18 @@ playlistSchema.methods.getTracks = async function getPlaylistTracks(limit, page 
       limit,
     },
   }).execPopulate();
-  const data = playlist.tracks.map(x => ({
-    id: x.id,
-    name: x.name,
-    durationMs: x.durationMs,
-    artist: x.artist,
-    album: x.album,
-  }));
+  let pos = skipAmount + 1;
+  const data = playlist.tracks.map((x) => {
+    pos += 1;
+    return {
+      id: x.id,
+      position: pos - 1,
+      name: x.name,
+      durationMs: x.durationMs,
+      artist: x.artist,
+      album: x.album,
+    };
+  });
   return { total, data };
 };
 
