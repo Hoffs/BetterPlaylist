@@ -39,7 +39,7 @@ class Playlister extends Component {
 
 
 Playlister.propTypes = {
-  history: PropTypes.shape([]).isRequired,
+  history: PropTypes.shape({ push: PropTypes.func }).isRequired,
 };
 
 export default Playlister;

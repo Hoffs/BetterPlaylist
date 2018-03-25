@@ -36,7 +36,7 @@ class PlaylistList extends Component {
     return (
       <div className="list-container">
         <span className="list-container__title">
-          Playlists:
+          PLAYLISTS
         </span>
         <ul className="list-container__list">
           {this.state.playlists.map(playlist =>

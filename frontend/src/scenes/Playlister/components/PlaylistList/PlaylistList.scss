@@ -11,11 +11,12 @@
   grid-row: title;
   align-self: center;
   padding-left: 15px;
-  font-size: 2em;
+  font-size: 1.7em;
 }
 
 .list-container__list {
   grid-row: content;
   list-style: none;
   padding-left: 0;
+  margin-top: 10px;
 }

@@ -1,4 +1,5 @@
 .playlist-container {
+  position: relative;
   grid-area: playlist;
   display: grid;
   grid-template-rows: [header] 120px [tracks] 1fr;

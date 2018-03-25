@@ -7,26 +7,30 @@
     ".        .         .         add"
     "name     artist    album     duration"
     "content  content   content   content";
-  grid-auto-columns: 2fr 1fr 1fr 0.5fr;
+  grid-auto-columns: 1.5fr 1fr 1fr 0.5fr;
 }
 
 .track-container__legend-name {
+  font-size: 0.9em;
   padding-left: 5px;
   grid-area: name;
   align-self: center;
 }
 
 .track-container__legend-artist {
+  font-size: 0.9em;
   grid-area: artist;
   align-self: center;
 }
 
 .track-container__legend-album {
+  font-size: 0.9em;
   grid-area: album;
   align-self: center;
 }
 
 .track-container__legend-duration {
+  font-size: 0.9em;
   padding-right: 5px;
   grid-area: duration;
   align-self: center;
@@ -34,14 +38,29 @@
 }
 
 .track-container__add {
+  font-size: 0.9em;
   padding-right: 5px;
   align-self: center;
   grid-area: add;
   text-align: right;
 }
 
+.track-container__add__button {
+  background: none;
+  color: inherit;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  outline: inherit;
+  transition: 0.2s;
+  font-size: 0.8em;
+  &:hover {
+    color: #1db954;
+  }
+}
+
 .track-container__tracks {
-  padding-top: 10px;
   grid-area: content;
-  border-top: 1px solid hsla(0, 0%, 20%, 1);
+  border-top: 2px solid hsla(0, 0%, 20%, 1);
 }

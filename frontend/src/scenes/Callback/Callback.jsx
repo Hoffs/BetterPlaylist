@@ -44,7 +44,7 @@ class Callback extends Component {
 
 Callback.propTypes = {
   location: PropTypes.shape({ search: PropTypes.string }).isRequired,
-  history: PropTypes.arrayOf(PropTypes.string).isRequired,
+  history: PropTypes.shape({ push: PropTypes.func }).isRequired,
 };
 
 export default Callback;

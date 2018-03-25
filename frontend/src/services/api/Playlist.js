@@ -14,7 +14,7 @@ export const getPlaylistInfo = async (token, playlistId) => {
   }
 
   const data = await response.json();
-  return data;
+  return { id: playlistId, data };
 };
 
 export const getPlaylistTracks = async (token, playlistId) => {
@@ -31,13 +31,17 @@ export const getPlaylistTracks = async (token, playlistId) => {
   }
 
   const data = await response.json();
-  return data.map(track => ({
-    id: track.id,
-    name: track.name,
-    duration: track.durationMs,
-    artist: track.artist,
-    album: track.album,
-  }));
+  return {
+    id: playlistId,
+    data: data.map(track => ({
+      id: track.id,
+      position: track.position,
+      name: track.name,
+      duration: track.durationMs,
+      artist: track.artist,
+      album: track.album,
+    })),
+  };
 };
 
 export const createPlaylist = async (token, name, description) => {

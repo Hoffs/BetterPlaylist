@@ -1,0 +1,70 @@
+.add-modal {
+  display: grid;
+  position: absolute;
+  height: 380px;
+  animation: fade-in 1s;
+  width: 320px;
+  top: calc(50% - 190px);
+  left: calc(50% - 160px);
+  background-color: #282828;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  grid-template-areas:
+    "title  title"
+    "input  input"
+    "add    close";
+  padding: 20px;
+  grid-template-rows: 60px 260px 60px;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+}
+
+.add-modal__title {
+  grid-area: title;
+  text-align: center;
+  font-size: 1.4em;
+  border-bottom: 2px solid hsla(0, 0%, 22%, 1);
+}
+
+.add-modal__title--top {
+  display: inline-block;
+}
+
+.add-modal__title--sub {
+  display: inline-block;
+  font-size: 0.7em;
+}
+
+.add-modal__input {
+  grid-area: input;
+  & textarea {
+    height: 220px;
+    width: 300px;
+    padding: 10px;
+    resize: none;
+    color: inherit;
+    font: inherit;
+    font-size: 0.85em;
+    border: 1px solid hsl(0, 0%, 22%);
+    border-radius: 3px;
+    background-color: hsl(0, 0%, 26%);
+    &:focus {
+      outline: 1px solid hsl(0, 0%, 22%);
+    }
+  }
+}
+
+.add-modal__button--add {
+  grid-area: add;
+  text-align: center;
+}
+
+.add-modal__button--close {
+  grid-area: close;
+  text-align: center;
+}
+
+@keyframes fade-in {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
