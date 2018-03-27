@@ -56,7 +56,7 @@ Button.propTypes = {
 
 Button.defaultProps = {
   fontSize: '1em',
-  disabled: 'false',
+  disabled: false,
   clickHandler: () => {},
 };
 

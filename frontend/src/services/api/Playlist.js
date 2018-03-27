@@ -45,9 +45,39 @@ export const getPlaylistTracks = async (token, playlistId) => {
 };
 
 export const createPlaylist = async (token, name, description) => {
-  //
+  const endpoint = `${domain}:${port}/api/playlist/`;
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    body: JSON.stringify({ name, description }),
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    mode: 'cors',
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  const data = await response.json();
+  return data;
 };
 
 export const deletePlaylist = async (token, playlistId) => {
-  //
+  const endpoint = `${domain}:${port}/api/playlist/${playlistId}`;
+  const response = await fetch(endpoint, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    mode: 'cors',
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  const data = await response.json();
+  return data;
 };

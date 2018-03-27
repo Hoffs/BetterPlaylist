@@ -6,12 +6,35 @@
   // background-color: rgb(18, 18, 18);
 }
 
-.list-container__title {
-  display: inline-block;
-  grid-row: title;
+.list-container__header {
+  display: flex;
   align-self: center;
+  grid-row: title;
+}
+
+
+.list-container__header__title {
   padding-left: 15px;
+  flex-grow: 1;
   font-size: 1.7em;
+}
+
+.list-container__header__add {
+  background: transparent;
+  border: 0;
+  font-family: inherit;
+  color: inherit;
+  align-self: flex-end;
+  line-height: 1.7em;
+  transition: .2s;
+  font-size: 1em;
+  cursor: pointer;
+  &:hover {
+    color: #1db954;
+  }
+  &:focus {
+    outline: none;
+  }
 }
 
 .list-container__list {

@@ -80,7 +80,10 @@ class PlaylistInfo extends Component {
         <PlaylistHeader name={this.state.name} description={this.state.description} />
         <TrackList tracks={this.state.tracks} addHandler={this.onAddTrack} />
         <Route path="/home/playlist/:playlist_id/add" component={Fader} />
-        <Route path="/home/playlist/:playlist_id/add" render={rProps => <AddTracks {...rProps} closeHandler={this.onTracksAdded} />} />
+        <Route
+          path="/home/playlist/:playlist_id/add"
+          render={rProps => <AddTracks {...rProps} closeHandler={this.onTracksAdded} />}
+        />
       </div>
     );
   }

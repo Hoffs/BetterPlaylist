@@ -1,18 +1,15 @@
 import React, { Component } from 'react';
 import { withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import Api from '../../../../services/api';
 import './PlaylistList.css';
-import PlaylistItem from './components/PlaylistItem';
+import PlaylistItem from './components/PlaylistItem/';
 
 class PlaylistList extends Component {
   constructor(props) {
     super(props);
-    this.state = { playlists: [] };
     this.deletePlaylist = this.deletePlaylist.bind(this);
     this.selectPlaylist = this.selectPlaylist.bind(this);
-    Api.playlists(localStorage.getItem('token'))
-      .then(data => this.setState({ playlists: data }));
+    this.addPlaylist = this.addPlaylist.bind(this);
   }
 
   selectPlaylist(e, itemId) {
@@ -21,25 +18,37 @@ class PlaylistList extends Component {
     }
   }
 
-  deletePlaylist(e, itemId) {
-    if (this.props.location.pathname.indexOf(itemId) !== -1) {
-      this.props.history.push('/home/');
-    }
-    const newPlaylists = Object.assign([], this.state.playlists);
-    const filtered = newPlaylists.filter(playlist => playlist.id !== itemId);
-    this.setState({ playlists: filtered });
-    // TODO: Call api
+  deletePlaylist(e, itemId) { // Pretty bad solution
+    this.props.onDelete(itemId)
+      .then((didDelete) => {
+        if (didDelete) {
+          // Maybe dispaly notification
+        }
+        if (this.props.location.pathname.indexOf(itemId) !== -1) {
+          this.props.history.push('/home/');
+        }
+      })
+      .catch(() => this.props.history.push('/home/'));
+  }
+
+  addPlaylist() {
+    this.props.history.push('/home/add');
   }
 
 
   render() {
     return (
       <div className="list-container">
-        <span className="list-container__title">
-          PLAYLISTS
-        </span>
+        <div className="list-container__header">
+          <span className="list-container__header__title">
+            PLAYLISTS
+          </span>
+          <button onClick={this.addPlaylist} className="list-container__header__add">
+            ADD
+          </button>
+        </div>
         <ul className="list-container__list">
-          {this.state.playlists.map(playlist =>
+          {this.props.playlists.map(playlist =>
             (<PlaylistItem
               key={playlist.id}
               id={playlist.id}
@@ -57,6 +66,11 @@ class PlaylistList extends Component {
 PlaylistList.propTypes = {
   history: PropTypes.shape([]).isRequired,
   location: PropTypes.shape({ pathname: PropTypes.string }).isRequired,
+  playlists: PropTypes.arrayOf(PropTypes.shape({
+    id: PropTypes.string,
+    name: PropTypes.string,
+  })).isRequired,
+  onDelete: PropTypes.func.isRequired,
 };
 
 export default withRouter(PlaylistList);
