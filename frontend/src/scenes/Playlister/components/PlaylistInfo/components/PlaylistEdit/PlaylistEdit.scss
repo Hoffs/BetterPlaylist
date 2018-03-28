@@ -1,4 +1,4 @@
-.playlist-modal {
+.edit-modal {
   display: grid;
   position: absolute;
   height: 380px;
@@ -19,7 +19,7 @@
   align-items: center;
 }
 
-.playlist-modal__title {
+.edit-modal__title {
   grid-area: title;
   text-align: center;
   font-size: 1.4em;
@@ -27,7 +27,7 @@
   display: inline-block;
 }
 
-.playlist-modal__input {
+.edit-modal__input {
   grid-area: input;
   display: flex;
   flex-direction: column;
@@ -63,27 +63,27 @@
   }
 }
 
-.playlist-modal__input__name {
+.edit-modal__input__name {
   display: block;
   font-size: 1.2em;
 }
 
-.playlist-modal__errors {
+.edit-modal__errors {
   font-size: 0.75em;
   color: red;
 }
 
-.playlist-modal__input__description {
+.edit-modal__input__description {
   display: block;
   font-size: 1.2em;
 }
 
-.playlist-modal__button--add {
+.edit-modal__button--add {
   grid-area: add;
   text-align: center;
 }
 
-.playlist-modal__button--close {
+.edit-modal__button--close {
   grid-area: close;
   text-align: center;
 }

@@ -2,6 +2,8 @@
   position: relative;
   grid-area: playlist;
   display: grid;
-  grid-template-rows: [header] 120px [tracks] 1fr;
+  grid-template-rows: [header] min-content [tracks] 1fr;
+  // grid-auto-rows: min-content 1fr;
+  // grid-template-areas:
   background-image: linear-gradient(rgba(58, 58, 58, 1), rgb(24, 24, 24) 40%);
 }

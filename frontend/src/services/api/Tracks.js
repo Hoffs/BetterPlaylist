@@ -20,11 +20,11 @@ export const addTracksToPlaylist = async (token, playlistId, trackArray) => {
   return { id: playlistId, data };
 };
 
-export const removeTracksFromPlaylist = async (token, playlistId, trackArray) => {
+export const removeTracksFromPlaylist = async (token, playlistId, ...tracks) => {
   const endpoint = `${domain}:${port}/api/playlist/${playlistId}/tracks/`;
 
   const promises = [];
-  trackArray.forEach((element) => {
+  tracks.forEach((element) => {
     const promise = fetch(`${endpoint}/${element}`, {
       method: 'DELETE',
       headers: {

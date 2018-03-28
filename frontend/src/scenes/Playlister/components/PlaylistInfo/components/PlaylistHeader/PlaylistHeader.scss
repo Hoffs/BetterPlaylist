@@ -1,13 +1,46 @@
 .header-container {
   grid-row: header;
-  padding: 20px 0px 10px 60px;
+  padding: 20px 20px 10px 60px;
 }
 
 .header-container__name {
   font-size: 2em;
   padding-bottom: 10px;
+  word-break: break-all;
 }
 
 .header-container__description {
   font-size: 1.0em;
+  word-break: break-all;
 }
+
+.header-container__name__edit {
+  background: none;
+  color: inherit;
+  border: none;
+  padding: 0 0 0 5px;
+  font: inherit;
+  cursor: pointer;
+  outline: inherit;
+  transition: 0.2s;
+  font-size: 0.45em;
+  &:hover {
+    color: hsla(20, 100%, 60%, 1);
+  }
+}
+
+.header-container__name__export {
+  background: none;
+  color: inherit;
+  border: none;
+  padding: 0 0 0 5px;
+  font: inherit;
+  cursor: pointer;
+  outline: inherit;
+  transition: 0.2s;
+  font-size: 0.45em;
+  &:hover {
+    color: #1db954;
+  }
+}
+

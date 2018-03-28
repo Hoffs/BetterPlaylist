@@ -18,15 +18,19 @@ const TrackList = props => (
       DURATION
     </div>
     <div className="track-container__add">
-      <button className="track-container__add__button" onClick={props.addHandler}>ADD TRACKS</button>
+      <button className="track-container__add__button" onClick={props.addHandler}>
+        ADD TRACKS
+      </button>
     </div>
     <div className="track-container__tracks">
       {props.tracks.map(track => (<TrackItem
-        key={track.position}
+        key={track.id}
+        id={track.id}
         name={track.name}
         duration={track.duration}
         album={track.album}
         artist={track.artist}
+        onDelete={props.deleteHandler}
       />))}
     </div>
   </div>
@@ -42,6 +46,7 @@ TrackList.propTypes = {
     artist: PropTypes.string,
   })).isRequired,
   addHandler: PropTypes.func.isRequired,
+  deleteHandler: PropTypes.func.isRequired,
 };
 
 export default TrackList;

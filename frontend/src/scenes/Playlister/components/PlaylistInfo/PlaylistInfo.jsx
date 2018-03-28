@@ -6,7 +6,9 @@ import Api from '../../../../services/api';
 import PlaylistHeader from './components/PlaylistHeader';
 import TrackList from './components/TrackList';
 import AddTracks from './components/AddTracks';
+import PlaylistEdit from './components/PlaylistEdit';
 import './PlaylistInfo.css';
+import PlaylistExport from './components/PlaylistExport/PlaylistExport';
 
 class PlaylistInfo extends Component {
   constructor(props) {
@@ -20,6 +22,11 @@ class PlaylistInfo extends Component {
     };
     this.onAddTrack = this.onAddTrack.bind(this);
     this.onTracksAdded = this.onTracksAdded.bind(this);
+    this.onPlaylistEdit = this.onPlaylistEdit.bind(this);
+    this.onTrackDelete = this.onTrackDelete.bind(this);
+    this.onPlaylistExport = this.onPlaylistExport.bind(this);
+    this.playlistEditHandler = this.playlistEditHandler.bind(this);
+    this.playlistExportHandler = this.playlistExportHandler.bind(this);
   }
 
   componentDidMount() {
@@ -35,6 +42,27 @@ class PlaylistInfo extends Component {
   onAddTrack() {
     this.props.history.push(`/home/playlist/${this.props.match.params.playlist_id}/add`);
   }
+
+  onPlaylistEdit() {
+    this.props.history.push(`/home/playlist/${this.props.match.params.playlist_id}/edit`);
+  }
+
+  onPlaylistExport() {
+    this.props.history.push(`/home/playlist/${this.props.match.params.playlist_id}/export`);
+  }
+
+  onTrackDelete(trackId) {
+    Api.removeTracks(localStorage.getItem('token'), this.props.match.params.playlist_id, trackId)
+      .then(({ id }) => {
+        if (id === this.props.match.params.playlist_id) {
+          const newTracks = Object.assign([], this.state.tracks);
+          const filtered = newTracks.filter(track => track.id !== trackId);
+          this.setState({ tracks: filtered });
+        }
+      })
+      .catch(() => { /* Maybe show error */ });
+  }
+
 
   onTracksAdded(didAdd) {
     if (didAdd) {
@@ -74,15 +102,64 @@ class PlaylistInfo extends Component {
       .catch(() => this.props.history.push('/home')); // TODO: Maybe show notification if error occurs
   }
 
+  async playlistEditHandler(name, description) {
+    if (name === this.state.name && description === this.state.description) {
+      return false;
+    }
+
+    const response = await Api.editPlaylist(localStorage.getItem('token'), this.props.match.params.playlist_id, name, description);
+    if (response.id) {
+      this.setState({ name: response.name, description: response.description });
+      return true;
+    }
+    return false;
+  }
+
+  async playlistExportHandler(name) {
+    const response = await Api.exportPlaylist(localStorage.getItem('token'), this.props.match.params.playlist_id, name);
+    if (response.spotify_uri) {
+      return true;
+    }
+    return false;
+  }
+
   render() {
     return (
       <div playlist-id={this.state.playlist} className="playlist-container">
-        <PlaylistHeader name={this.state.name} description={this.state.description} />
-        <TrackList tracks={this.state.tracks} addHandler={this.onAddTrack} />
+        <PlaylistHeader
+          name={this.state.name}
+          description={this.state.description}
+          onEdit={this.onPlaylistEdit}
+          onExport={this.onPlaylistExport}
+        />
+        <TrackList
+          tracks={this.state.tracks}
+          addHandler={this.onAddTrack}
+          deleteHandler={this.onTrackDelete}
+        />
         <Route path="/home/playlist/:playlist_id/add" component={Fader} />
         <Route
           path="/home/playlist/:playlist_id/add"
           render={rProps => <AddTracks {...rProps} closeHandler={this.onTracksAdded} />}
+        />
+        <Route path="/home/playlist/:playlist_id/edit" component={Fader} />
+        <Route
+          path="/home/playlist/:playlist_id/edit"
+          render={rProps => (<PlaylistEdit
+            {...rProps}
+            name={this.state.name}
+            description={this.state.description}
+            onEdit={this.playlistEditHandler}
+          />)}
+        />
+        <Route path="/home/playlist/:playlist_id/export" component={Fader} />
+        <Route
+          path="/home/playlist/:playlist_id/export"
+          render={rProps => (<PlaylistExport
+            {...rProps}
+            name={this.state.name}
+            onExport={this.playlistExportHandler}
+          />)}
         />
       </div>
     );

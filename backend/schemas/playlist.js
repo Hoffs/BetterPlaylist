@@ -31,19 +31,30 @@ playlistSchema.statics.createWith = async function createPlaylistWithNameAndDesc
 };
 
 playlistSchema.methods.addTracks = async function addTracksToPlaylist(accessToken, ...trackIds) {
-  const missing = await Track.getMissing(...trackIds);
+  const uniqueIds = trackIds.filter((id, index, self) => self.indexOf(id) === index);
+  const missing = await Track.getMissing(...uniqueIds);
   if (missing && missing.length > 0) {
     const missingData = await spotify.getTrackData(accessToken, ...missing);
     await Track.insertTracks(...missingData);
   }
-  const ids = await Track.getObjectIds(...trackIds);
+  const ids = await Track.getObjectIds(...uniqueIds);
   const playlist = await Playlist.findById(this.get('_id')).select('tracks').exec(); // eslint-disable-line no-use-before-define
 
-  if (ids.length > 0) {
-    playlist.tracks.push(...ids);
+  let addedCount = 0;
+
+  ids.forEach((objectId) => {
+    const exists = playlist.tracks.some(trackObjectId => trackObjectId.equals(objectId));
+    if (!exists) {
+      playlist.tracks.push(...ids);
+      addedCount += 1;
+    }
+  });
+
+  if (addedCount > 0) {
     await playlist.save();
   }
-  return ids.length;
+
+  return addedCount;
 };
 
 playlistSchema.methods.exportToSpotify =

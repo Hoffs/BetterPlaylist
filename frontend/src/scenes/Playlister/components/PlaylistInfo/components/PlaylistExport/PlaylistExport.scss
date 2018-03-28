@@ -1,7 +1,7 @@
-.playlist-modal {
+.export-modal {
   display: grid;
   position: absolute;
-  height: 380px;
+  height: 200px;
   animation: fade-in 1s;
   width: 320px;
   top: calc(50vh - 190px);
@@ -14,12 +14,12 @@
     "input  input"
     "add    close";
   padding: 20px;
-  grid-template-rows: 60px 260px 60px;
+  grid-template-rows: 60px 80px 60px;
   grid-template-columns: 1fr 1fr;
   align-items: center;
 }
 
-.playlist-modal__title {
+.export-modal__title {
   grid-area: title;
   text-align: center;
   font-size: 1.4em;
@@ -27,7 +27,7 @@
   display: inline-block;
 }
 
-.playlist-modal__input {
+.export-modal__input {
   grid-area: input;
   display: flex;
   flex-direction: column;
@@ -46,44 +46,29 @@
       outline: 1px solid hsl(0, 0%, 22%);
     }
   }
-
-  & textarea {
-    padding: 10px;
-    resize: none;
-    color: inherit;
-    font: inherit;
-    font-size: 0.85em;
-    border: 1px solid hsl(0, 0%, 22%);
-    flex-grow: 1;
-    border-radius: 3px;
-    background-color: hsl(0, 0%, 26%);
-    &:focus {
-      outline: 1px solid hsl(0, 0%, 22%);
-    }
-  }
 }
 
-.playlist-modal__input__name {
+.export-modal__input__name {
   display: block;
   font-size: 1.2em;
 }
 
-.playlist-modal__errors {
+.export-modal__errors {
   font-size: 0.75em;
   color: red;
 }
 
-.playlist-modal__input__description {
+.export-modal__input__description {
   display: block;
   font-size: 1.2em;
 }
 
-.playlist-modal__button--add {
+.export-modal__button--export {
   grid-area: add;
   text-align: center;
 }
 
-.playlist-modal__button--close {
+.export-modal__button--close {
   grid-area: close;
   text-align: center;
 }

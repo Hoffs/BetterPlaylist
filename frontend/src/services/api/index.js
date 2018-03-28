@@ -1,6 +1,6 @@
 import auth from './Auth';
 import { getUserInfo, getPlaylists } from './User';
-import { getPlaylistInfo, getPlaylistTracks, createPlaylist, deletePlaylist } from './Playlist';
+import { getPlaylistInfo, getPlaylistTracks, createPlaylist, deletePlaylist, editPlaylist, exportPlaylist } from './Playlist';
 import { addTracksToPlaylist, removeTracksFromPlaylist } from './Tracks';
 
 export default {
@@ -12,5 +12,7 @@ export default {
   addTracks: addTracksToPlaylist,
   removeTracks: removeTracksFromPlaylist,
   addPlaylist: createPlaylist,
+  editPlaylist,
+  exportPlaylist,
   removePlaylist: deletePlaylist,
 };

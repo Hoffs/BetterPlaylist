@@ -1,42 +1,41 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import Button from '../../../../components/Button';
-import './PlaylistAdd.css';
+import Button from '../../../../../../components/Button';
+import './PlaylistEdit.css';
 
-class PlaylistAdd extends Component {
+class PlaylistEdit extends Component {
   constructor(props) {
     super(props);
     this.state = {
       isAdding: false,
-      name: '',
+      name: this.props.name,
       nameError: '',
-      description: '',
+      description: this.props.description,
       descriptionError: '',
-      isValidName: false,
-      isValidDescription: false,
+      isValidName: true,
+      isValidDescription: true,
     };
     this.closeModal = this.closeModal.bind(this);
-    this.addPlaylist = this.addPlaylist.bind(this);
+    this.editPlaylist = this.editPlaylist.bind(this);
     this.handleChangeName = this.handleChangeName.bind(this);
     this.handleChangeDescription = this.handleChangeDescription.bind(this);
   }
 
-  addPlaylist() {
+  editPlaylist() {
     this.setState({ isAdding: true });
-
-    this.props.onAdd(this.state.name, this.state.description)
+    this.props.onEdit(this.state.name, this.state.description)
       .then((status) => {
         if (status) {
           // Maybe return added notification ?
         }
 
-        this.props.history.push('/home/');
+        this.props.history.push(`/home/playlist/${this.props.match.params.playlist_id}`);
       })
-      .catch(() => this.props.history.push('/home/'));
+      .catch(() => this.props.history.push(`/home/playlist/${this.props.match.params.playlist_id}`));
   }
 
   closeModal() {
-    this.props.history.push('/home/');
+    this.props.history.push(`/home/playlist/${this.props.match.params.playlist_id}`);
   }
 
   handleChangeName(event) {
@@ -65,43 +64,43 @@ class PlaylistAdd extends Component {
 
   render() {
     return (
-      <div className="playlist-modal">
-        <div className="playlist-modal__title">
+      <div className="edit-modal">
+        <div className="edit-modal__title">
           <span>
-            ADD PLAYLIST
+            EDIT PLAYLIST
           </span>
         </div>
-        <div className="playlist-modal__input">
-          <span className="playlist-modal__input__name">
+        <div className="edit-modal__input">
+          <span className="edit-modal__input__name">
             NAME
           </span>
-          <input id="playlist-name" value={this.state.name} onChange={this.handleChangeName} />
-          <span className="playlist-modal__errors">
+          <input id="edit-name" value={this.state.name} onChange={this.handleChangeName} />
+          <span className="edit-modal__errors">
             {this.state.isValidName ? '' : this.state.nameError}
           </span>
-          <span className="playlist-modal__input__description">
+          <span className="edit-modal__input__description">
             DESCRIPTION
           </span>
           <textarea
-            id="playlist-decription"
+            id="edit-decription"
             value={this.state.description}
             onChange={this.handleChangeDescription}
           />
-          <span className="playlist-modal__errors">
+          <span className="edit-modal__errors">
             {this.state.isValidDescription ? '' : this.state.descriptionError}
           </span>
         </div>
 
-        <div className="playlist-modal__button--add">
+        <div className="edit-modal__button--add">
           <Button
             disabled={this.state.isAdding ||
               !(this.state.isValidDescription && this.state.isValidName)}
             color="#1db954"
-            label="ADD"
-            clickHandler={this.addPlaylist}
+            label="EDIT"
+            clickHandler={this.editPlaylist}
           />
         </div>
-        <div className="playlist-modal__button--close">
+        <div className="edit-modal__button--close">
           <Button
             disabled={this.state.isAdding}
             color="#ff3f51"
@@ -114,9 +113,16 @@ class PlaylistAdd extends Component {
   }
 }
 
-PlaylistAdd.propTypes = {
+PlaylistEdit.propTypes = {
+  match: PropTypes.shape({ params: PropTypes.shape({ playlist_id: PropTypes.string }) }).isRequired,
   history: PropTypes.shape([]).isRequired,
-  onAdd: PropTypes.func.isRequired,
+  onEdit: PropTypes.func,
+  name: PropTypes.string.isRequired,
+  description: PropTypes.string.isRequired,
 };
 
-export default PlaylistAdd;
+PlaylistEdit.defaultProps = {
+  onEdit: () => {},
+};
+
+export default PlaylistEdit;
