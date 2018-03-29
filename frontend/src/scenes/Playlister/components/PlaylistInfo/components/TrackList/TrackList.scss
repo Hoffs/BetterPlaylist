@@ -4,7 +4,7 @@
   display: grid;
   grid-template-rows: 20px 40px 1fr;
   grid-template-areas:
-    ".        .         .         add"
+    "search   search    .         add"
     "name     artist    album     duration"
     "content  content   content   content";
   grid-auto-columns: 1.5fr 1fr 1fr 0.5fr;
@@ -43,6 +43,27 @@
   align-self: center;
   grid-area: add;
   text-align: right;
+}
+
+.track-container__search {
+  font-size: 1em;
+  padding-left: 5px;
+  align-self: center;
+  grid-area: search;
+  text-align: left;
+  & input {
+    color: inherit;
+    font: inherit;
+    margin-left: 8px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid white;
+    transition: 0.3s;
+    &:focus, &:active {
+      border-bottom-color: #1db954;
+      outline: none;
+    }
+  }
 }
 
 .track-container__add__button {

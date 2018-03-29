@@ -2,7 +2,7 @@
   grid-area: user;
   display: grid;
   grid-template-columns: [img] 60px [text] 1fr;
-  grid-template-rows: [top] 1fr [bot] 1fr;
+  grid-template-rows: [top] 1fr [middle] 1fr [bot] 1fr;
   padding: 20px;
   position: relative;
 
@@ -21,7 +21,7 @@
 
 .user-container__image {
   grid-column: img;
-  grid-row: span 2;
+  grid-row: span 3;
   border-radius: 50px;
   align-self: center;
   width: 60px;
@@ -36,8 +36,32 @@
 
 .user-container__id {
   grid-column: text;
+  grid-row: middle;
+  align-self: center;
+  padding-left: 10px;
+  display: inline-block;
+}
+
+.user-container__logout {
+  grid-column: text;
   grid-row: bot;
   align-self: start;
   padding-left: 10px;
   display: inline-block;
+  & button {
+    color: inherit;
+    border: 0;
+    background: transparent;
+    font-family: inherit;
+    align-self: center;
+    transition: .2s;
+    font-size: 0.8em;
+    cursor: pointer;
+    &:hover {
+      color: #ff3f51;
+    }
+    &:focus {
+      outline: none;
+    }
+  }
 }

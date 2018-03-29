@@ -22,6 +22,13 @@ const TrackList = props => (
         ADD TRACKS
       </button>
     </div>
+    <div className="track-container__search">
+      <span>SEARCH:</span>
+      <input
+        onKeyPress={e => ((e.key === 'Enter') ? props.searchHandler(e.target.value) : null)}
+        onBlur={e => props.searchHandler(e.target.value)}
+      />
+    </div>
     <div className="track-container__tracks">
       {props.tracks.map(track => (<TrackItem
         key={track.id}
@@ -47,6 +54,7 @@ TrackList.propTypes = {
   })).isRequired,
   addHandler: PropTypes.func.isRequired,
   deleteHandler: PropTypes.func.isRequired,
+  searchHandler: PropTypes.func.isRequired,
 };
 
 export default TrackList;

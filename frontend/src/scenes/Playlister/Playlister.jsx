@@ -20,6 +20,7 @@ class Playlister extends Component {
 
     this.playlistDeleteHandler = this.playlistDeleteHandler.bind(this);
     this.playlistAddHandler = this.playlistAddHandler.bind(this);
+    this.logoutHandler = this.logoutHandler.bind(this);
 
     Api.playlists(localStorage.getItem('token'))
       .then(data => this.setState({ playlists: data }));
@@ -35,6 +36,11 @@ class Playlister extends Component {
     if (!localStorage.getItem('token')) {
       this.props.history.push('/login');
     }
+  }
+
+  logoutHandler() {
+    localStorage.removeItem('token');
+    this.props.history.push('/home');
   }
 
   async playlistDeleteHandler(playlistId) {
@@ -64,7 +70,7 @@ class Playlister extends Component {
   render() {
     return (
       <div className="playlister-container" >
-        <UserBar />
+        <UserBar onLogout={this.logoutHandler} />
         <PlaylistList playlists={this.state.playlists} onDelete={this.playlistDeleteHandler} />
         <Route path="/home/add" component={Fader} />
         <Route

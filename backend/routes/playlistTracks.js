@@ -2,17 +2,19 @@ const router = require('express').Router();
 const Joi = require('joi');
 
 router.get('/', (req, res) => {
-  const validatedLimit = Joi.number().greater(0).less(50).required()
-    .validate(req.header('limit'));
-  const limit = (validatedLimit.error) ? 20 : req.header('limit');
-  const validatedPage = Joi.number().greater(0).required().validate(req.header('page'));
-  const page = (validatedPage.error) ? 1 : req.header('page');
+  const validatedLimit = Joi.number().greater(0).max(100).required()
+    .validate(req.header('Limit'));
+  const limit = (validatedLimit.error) ? 20 : req.header('Limit');
+  const validatedPage = Joi.number().greater(0).required().validate(req.header('Page'));
+  const page = (validatedPage.error) ? 1 : req.header('Page');
+  const validatedSearch = Joi.string().min(5).max(60).validate(req.header('Search'));
+  const search = (validatedSearch.error) ? '' : req.header('Search');
 
-  req.playlist.getTracks(limit, page)
+  req.playlist.getTracks(limit, page, search)
     .then((tracksData) => {
-      res.setHeader('total-count', tracksData.total);
-      res.setHeader('limit', limit);
-      res.setHeader('page', page);
+      res.setHeader('Total-Count', tracksData.total);
+      res.setHeader('Limit', limit);
+      res.setHeader('Page', page);
       return res.status(200).json(tracksData.data);
     })
     .catch(() => res.status(409).json({ code: 409, message: 'Coudln\'t retrieve tracks.' }));

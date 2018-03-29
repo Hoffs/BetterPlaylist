@@ -25,6 +25,7 @@ class PlaylistInfo extends Component {
     this.onPlaylistEdit = this.onPlaylistEdit.bind(this);
     this.onTrackDelete = this.onTrackDelete.bind(this);
     this.onPlaylistExport = this.onPlaylistExport.bind(this);
+    this.onTrackSearch = this.onTrackSearch.bind(this);
     this.playlistEditHandler = this.playlistEditHandler.bind(this);
     this.playlistExportHandler = this.playlistExportHandler.bind(this);
   }
@@ -63,6 +64,31 @@ class PlaylistInfo extends Component {
       .catch(() => { /* Maybe show error */ });
   }
 
+  onTrackSearch(searchTerm) {
+    if (searchTerm === this.state.searchTerm) {
+      return;
+    }
+    if (searchTerm.length < 5 || searchTerm.length > 60) {
+      if (this.state.searchTerm === '') return;
+      Api.playlistTracks(localStorage.getItem('token'), this.props.match.params.playlist_id)
+        .then((tracks) => {
+          if (tracks.id === this.state.playlist && tracks.searchTerm === '') {
+            this.setState({ tracks: tracks.data });
+          }
+        })
+        .catch(() => this.props.history.push('/home')); // TODO: Maybe show notification if error occurs
+      this.setState({ searchTerm: '' });
+      return;
+    }
+    this.setState({ searchTerm });
+    Api.playlistTracks(localStorage.getItem('token'), this.props.match.params.playlist_id, searchTerm)
+      .then((tracks) => {
+        if (tracks.id === this.state.playlist && tracks.searchTerm === searchTerm) {
+          this.setState({ tracks: tracks.data });
+        }
+      })
+      .catch(() => this.props.history.push('/home')); // TODO: Maybe show notification if error occurs
+  }
 
   onTracksAdded(didAdd) {
     if (didAdd) {
@@ -95,7 +121,7 @@ class PlaylistInfo extends Component {
 
     Api.playlistTracks(token, playlistId)
       .then((tracks) => {
-        if (tracks.id === this.state.playlist) {
+        if (tracks && tracks.id === this.state.playlist) {
           this.setState({ tracks: tracks.data });
         }
       })
@@ -136,6 +162,7 @@ class PlaylistInfo extends Component {
           tracks={this.state.tracks}
           addHandler={this.onAddTrack}
           deleteHandler={this.onTrackDelete}
+          searchHandler={this.onTrackSearch}
         />
         <Route path="/home/playlist/:playlist_id/add" component={Fader} />
         <Route

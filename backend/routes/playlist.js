@@ -32,16 +32,16 @@ router.post('/', (req, res) => {
 });
 
 router.get('/', (req, res) => {
-  const validatedLimit = Joi.number().greater(0).less(50).required()
-    .validate(req.header('limit'));
-  const limit = (validatedLimit.error) ? 20 : req.header('limit');
-  const validatedPage = Joi.number().greater(0).required().validate(req.header('page'));
-  const page = (validatedPage.error) ? 1 : req.header('page');
+  const validatedLimit = Joi.number().greater(0).max(50).required()
+    .validate(req.header('Limit'));
+  const limit = (validatedLimit.error) ? 20 : req.header('Limit');
+  const validatedPage = Joi.number().greater(0).required().validate(req.header('Page'));
+  const page = (validatedPage.error) ? 1 : req.header('Page');
   req.authUser.getPlaylists(limit, page)
     .then((playlists) => {
-      res.setHeader('total-count', playlists.total);
-      res.setHeader('limit', limit);
-      res.setHeader('page', page);
+      res.setHeader('Total-Count', playlists.total);
+      res.setHeader('Limit', limit);
+      res.setHeader('Page', page);
       return res.status(200).json(playlists.data);
     })
     .catch(() => res.status(400).json({ code: 400, message: "Couldn't retrieve playlists." }));

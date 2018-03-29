@@ -68,10 +68,27 @@ async function exportPlaylistToSpotify(spotifyId, token, name) {
   return { spotify_uri: `spotify:playlist:${exported.spotifyId}` };
 };
 
-playlistSchema.methods.getTracks = async function getPlaylistTracks(limit, page = 1) {
+playlistSchema.methods.getTracks = async function getPlaylistTracks(limit, page = 1, search = '') {
   if (limit < 0 || page < 0) {
     return null;
   }
+  let match = null;
+  if (search.length > 0) {
+    match = {
+      $or: [
+        {
+          name: { $regex: search, $options: 'i' },
+        },
+        {
+          artist: { $regex: search, $options: 'i' },
+        },
+        {
+          album: { $regex: search, $options: 'i' },
+        },
+      ],
+    };
+  }
+
   const skipAmount = (page - 1) * limit;
   const playlist = await Playlist.findById(this.get('_id')).select('tracks').exec(); // eslint-disable-line no-use-before-define
   const total = playlist.tracks.length;
@@ -79,6 +96,7 @@ playlistSchema.methods.getTracks = async function getPlaylistTracks(limit, page 
     path: 'tracks',
     model: 'Track',
     select: 'id name durationMs artist album',
+    match,
     options: {
       skip: skipAmount,
       limit,
